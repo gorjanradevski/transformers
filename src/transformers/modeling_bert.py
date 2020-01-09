@@ -170,7 +170,7 @@ class BertEmbeddings(nn.Module):
         self.LayerNorm = BertLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
-    def forward(self, input_ids=None, token_type_ids=None, position_ids=None, inputs_embeds=None):
+    def forward(self, input_ids=None, token_type_ids=None, position_ids=None, inputs_embeds=None, position_embeddings=None):
         if input_ids is not None:
             input_shape = input_ids.size()
         else:
@@ -186,7 +186,8 @@ class BertEmbeddings(nn.Module):
 
         if inputs_embeds is None:
             inputs_embeds = self.word_embeddings(input_ids)
-        position_embeddings = self.position_embeddings(position_ids)
+        if position_embeddings is None:
+            position_embeddings = self.position_embeddings(position_ids)
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
 
         embeddings = inputs_embeds + position_embeddings + token_type_embeddings
@@ -687,6 +688,7 @@ class BertModel(BertPreTrainedModel):
         inputs_embeds=None,
         encoder_hidden_states=None,
         encoder_attention_mask=None,
+        position_embeddings=None
     ):
         """ Forward pass on the Model.
 
@@ -798,7 +800,7 @@ class BertModel(BertPreTrainedModel):
             head_mask = [None] * self.config.num_hidden_layers
 
         embedding_output = self.embeddings(
-            input_ids=input_ids, position_ids=position_ids, token_type_ids=token_type_ids, inputs_embeds=inputs_embeds
+            input_ids=input_ids, position_ids=position_ids, token_type_ids=token_type_ids, inputs_embeds=inputs_embeds, position_embeddings=position_embeddings
         )
         encoder_outputs = self.encoder(
             embedding_output,
