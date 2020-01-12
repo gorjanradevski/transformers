@@ -975,6 +975,7 @@ class BertForMaskedLM(BertPreTrainedModel):
         encoder_hidden_states=None,
         encoder_attention_mask=None,
         lm_labels=None,
+        position_embeddings=None
     ):
 
         outputs = self.bert(
@@ -986,6 +987,7 @@ class BertForMaskedLM(BertPreTrainedModel):
             inputs_embeds=inputs_embeds,
             encoder_hidden_states=encoder_hidden_states,
             encoder_attention_mask=encoder_attention_mask,
+            position_embeddings=position_embeddings
         )
 
         sequence_output = outputs[0]
