@@ -3,17 +3,23 @@ language: multilingual
 thumbnail:
 ---
 
-# BERT (base-multilingual-uncased) fine-tuned for multilingual Q&A
+# [XLM](https://github.com/facebookresearch/XLM/) (multilingual version) fine-tuned for multilingual Q&A
 
-This model was created by [Google](https://github.com/google-research/bert/blob/master/multilingual.md) and fine-tuned on [XQuAD](https://github.com/deepmind/xquad) like data for multilingual (`11 different languages`) **Q&A** downstream task.
+Released from `Facebook` together with the paper [Cross-lingual Language Model Pretraining](https://arxiv.org/abs/1901.07291) by Guillaume Lample and Alexis Conneau and fine-tuned on [XQuAD](https://github.com/deepmind/xquad) for multilingual (`11 different languages`) **Q&A** downstream task.
 
-## Details of the language model('bert-base-multilingual-uncased')
+## Details of the language model('xlm-mlm-100-1280')
 
-[Language model](https://github.com/google-research/bert/blob/master/multilingual.md)
+[Language model](https://github.com/facebookresearch/XLM/#ii-cross-lingual-language-model-pretraining-xlm)
 
-| Languages | Heads | Layers | Hidden | Params |
-| --------- | ----- | ------ | ------ | ------ |
-| 102       | 12    | 12     | 768    | 100 M  |
+| Languages
+| --------- |
+| 100 |
+
+It includes the following languages:
+
+<details>
+en-es-fr-de-zh-ru-pt-it-ar-ja-id-tr-nl-pl-simple-fa-vi-sv-ko-he-ro-no-hi-uk-cs-fi-hu-th-da-ca-el-bg-sr-ms-bn-hr-sl-zh_yue-az-sk-eo-ta-sh-lt-et-ml-la-bs-sq-arz-af-ka-mr-eu-tl-ang-gl-nn-ur-kk-be-hy-te-lv-mk-zh_classical-als-is-wuu-my-sco-mn-ceb-ast-cy-kn-br-an-gu-bar-uz-lb-ne-si-war-jv-ga-zh_min_nan-oc-ku-sw-nds-ckb-ia-yi-fy-scn-gan-tt-am
+</details>
 
 ## Details of the downstream task (multilingual Q&A) - Dataset
 
@@ -65,7 +71,7 @@ Citation:
 
 </details>
 
-As **XQuAD** is just an evaluation dataset, I used `Data augmentation techniques` (scraping, neural machine translation, etc) to obtain more samples and splited the dataset in order to have a train and test set. The test set was created in a way that contains the same number of samples for each language. Finally, I got:
+As XQuAD is just an evaluation dataset, I used Data augmentation techniques (scraping, neural machine translation, etc) to obtain more samples and splited the dataset in order to have a train and test set. The test set was created in a way that contains the same number of samples for each language. Finally, I got:
 
 | Dataset     | # samples |
 | ----------- | --------- |
@@ -88,41 +94,29 @@ from transformers import pipeline
 qa_pipeline = pipeline(
     "question-answering",
     model="mrm8488/bert-multi-uncased-finetuned-xquadv1",
-    tokenizer="mrm8488/bert-multi-uncased-finetuned-xquadv1"
+    tokenizer="bert-multi-uncased-finetuned-xquadv1"
 )
 
-
-# context: Coronavirus is seeding panic in the West because it expands so fast.
-
-# question: Where is seeding panic Coronavirus?
-qa_pipeline({
-    'context': "कोरोनावायरस पश्चिम में आतंक बो रहा है क्योंकि यह इतनी तेजी से फैलता है।",
-    'question': "कोरोनावायरस घबराहट कहां है?"
-    
-})
-# output: {'answer': 'पश्चिम', 'end': 18, 'score': 0.7037217439689059, 'start': 12}
-
+# English
 qa_pipeline({
     'context': "Manuel Romero has been working hardly in the repository hugginface/transformers lately",
     'question': "Who has been working hard for hugginface/transformers lately?"
-    
 })
-# output: {'answer': 'Manuel Romero', 'end': 13, 'score': 0.7254485993702389, 'start': 0}
 
+#Output: {'answer': 'Manuel', 'end': 6, 'score': 8.531880747878265e-05, 'start': 0}
+
+# Russian
 qa_pipeline({
-    'context': "Manuel Romero a travaillé à peine dans le référentiel hugginface / transformers ces derniers temps",
-    'question': "Pour quel référentiel a travaillé Manuel Romero récemment?"
+    'context': "Мануэль Ромеро в последнее время почти не работал в репозитории hugginface / transformers",
+    'question': "Кто в последнее время усердно работал над обнимашками / трансформерами?"
     
 })
-#output: {'answer': 'hugginface / transformers', 'end': 79, 'score': 0.6482061613915384, 'start': 54}
-```
-![model in action](https://media.giphy.com/media/MBlire8Wj7ng73VBQ5/giphy.gif)
 
+#Output: {'answer': 'работал в репозитории hugginface /','end': 76, 'score': 0.00012340750456964894, 'start': 42}
+```
 Try it on a Colab:
 
 <a href="https://colab.research.google.com/github/mrm8488/shared_colab_notebooks/blob/master/Try_mrm8488_xquad_finetuned_uncased_model.ipynb" target="_parent"><img src="https://camo.githubusercontent.com/52feade06f2fecbf006889a904d221e6a730c194/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667" alt="Open In Colab" data-canonical-src="https://colab.research.google.com/assets/colab-badge.svg"></a>
-
-
 
 > Created by [Manuel Romero/@mrm8488](https://twitter.com/mrm8488)
 
