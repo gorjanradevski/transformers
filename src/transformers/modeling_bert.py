@@ -656,7 +656,7 @@ class BertModel(BertPreTrainedModel):
         inputs_embeds=None,
         encoder_hidden_states=None,
         encoder_attention_mask=None,
-        position_embeddings=None
+        position_embeddings=None,
         output_attentions=None,
     ):
         r"""
@@ -904,7 +904,7 @@ class BertLMHeadModel(BertPreTrainedModel):
         encoder_hidden_states=None,
         encoder_attention_mask=None,
         lm_labels=None,
-        position_embeddings=None
+        position_embeddings=None,
         output_attentions=None,
         **kwargs
     ):
