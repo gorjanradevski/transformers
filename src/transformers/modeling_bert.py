@@ -1077,7 +1077,7 @@ class BertForMaskedLM(BertPreTrainedModel):
             inputs_embeds=inputs_embeds,
             encoder_hidden_states=encoder_hidden_states,
             encoder_attention_mask=encoder_attention_mask,
-            position_embeddings=position_embeddings
+            position_embeddings=position_embeddings)
 
         prediction_scores = self.cls(sequence_output)
 
