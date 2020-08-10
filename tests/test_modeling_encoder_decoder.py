@@ -18,12 +18,12 @@ import tempfile
 import unittest
 
 from transformers import is_torch_available
+from transformers.testing_utils import require_torch, slow, torch_device
 
 # TODO(PVP): this line reruns all the tests in BertModelTest; not sure whether this can be prevented
 # for now only run module with pytest tests/test_modeling_encoder_decoder.py::EncoderDecoderModelTest
 from .test_modeling_bert import BertModelTester
 from .test_modeling_common import ids_tensor
-from .utils import require_torch, slow, torch_device
 
 
 if is_torch_available():
@@ -253,9 +253,6 @@ class EncoderDecoderModelTest(unittest.TestCase):
                 max_diff = np.amax(np.abs(out_1 - out_2))
                 self.assertLessEqual(max_diff, 1e-5)
 
-    def check_loss_output(self, loss):
-        self.assertEqual(loss.size(), ())
-
     def create_and_check_bert_encoder_decoder_model_labels(
         self,
         config,
@@ -281,7 +278,6 @@ class EncoderDecoderModelTest(unittest.TestCase):
         )
 
         mlm_loss = outputs_encoder_decoder[0]
-        self.check_loss_output(mlm_loss)
         # check that backprop works
         mlm_loss.backward()
 

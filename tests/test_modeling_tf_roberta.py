@@ -17,10 +17,10 @@
 import unittest
 
 from transformers import RobertaConfig, is_tf_available
+from transformers.testing_utils import require_tf, slow
 
 from .test_configuration_common import ConfigTester
 from .test_modeling_tf_common import TFModelTesterMixin, ids_tensor
-from .utils import require_tf, slow
 
 
 if is_tf_available():
@@ -32,6 +32,7 @@ if is_tf_available():
         TFRobertaForSequenceClassification,
         TFRobertaForTokenClassification,
         TFRobertaForQuestionAnswering,
+        TFRobertaForMultipleChoice,
         TF_ROBERTA_PRETRAINED_MODEL_ARCHIVE_LIST,
     )
 
@@ -94,6 +95,7 @@ class TFRobertaModelTester:
             max_position_embeddings=self.max_position_embeddings,
             type_vocab_size=self.type_vocab_size,
             initializer_range=self.initializer_range,
+            return_dict=True,
         )
 
         return config, input_ids, token_type_ids, input_mask, sequence_labels, token_labels, choice_labels
@@ -103,31 +105,23 @@ class TFRobertaModelTester:
     ):
         model = TFRobertaModel(config=config)
         inputs = {"input_ids": input_ids, "attention_mask": input_mask, "token_type_ids": token_type_ids}
-        sequence_output = model(inputs)[0]
+        result = model(inputs)
 
         inputs = [input_ids, input_mask]
-        sequence_output = model(inputs)[0]
+        result = model(inputs)
 
-        sequence_output = model(input_ids)[0]
+        result = model(input_ids)
 
-        result = {
-            "sequence_output": sequence_output.numpy(),
-        }
         self.parent.assertListEqual(
-            list(result["sequence_output"].shape), [self.batch_size, self.seq_length, self.hidden_size]
+            list(result["last_hidden_state"].shape), [self.batch_size, self.seq_length, self.hidden_size]
         )
 
     def create_and_check_roberta_for_masked_lm(
         self, config, input_ids, token_type_ids, input_mask, sequence_labels, token_labels, choice_labels
     ):
         model = TFRobertaForMaskedLM(config=config)
-        prediction_scores = model([input_ids, input_mask, token_type_ids])[0]
-        result = {
-            "prediction_scores": prediction_scores.numpy(),
-        }
-        self.parent.assertListEqual(
-            list(result["prediction_scores"].shape), [self.batch_size, self.seq_length, self.vocab_size]
-        )
+        result = model([input_ids, input_mask, token_type_ids])
+        self.parent.assertListEqual(list(result["logits"].shape), [self.batch_size, self.seq_length, self.vocab_size])
 
     def create_and_check_roberta_for_token_classification(
         self, config, input_ids, token_type_ids, input_mask, sequence_labels, token_labels, choice_labels
@@ -135,10 +129,7 @@ class TFRobertaModelTester:
         config.num_labels = self.num_labels
         model = TFRobertaForTokenClassification(config=config)
         inputs = {"input_ids": input_ids, "attention_mask": input_mask, "token_type_ids": token_type_ids}
-        (logits,) = model(inputs)
-        result = {
-            "logits": logits.numpy(),
-        }
+        result = model(inputs)
         self.parent.assertListEqual(list(result["logits"].shape), [self.batch_size, self.seq_length, self.num_labels])
 
     def create_and_check_roberta_for_question_answering(
@@ -146,13 +137,25 @@ class TFRobertaModelTester:
     ):
         model = TFRobertaForQuestionAnswering(config=config)
         inputs = {"input_ids": input_ids, "attention_mask": input_mask, "token_type_ids": token_type_ids}
-        start_logits, end_logits = model(inputs)
-        result = {
-            "start_logits": start_logits.numpy(),
-            "end_logits": end_logits.numpy(),
-        }
+        result = model(inputs)
         self.parent.assertListEqual(list(result["start_logits"].shape), [self.batch_size, self.seq_length])
         self.parent.assertListEqual(list(result["end_logits"].shape), [self.batch_size, self.seq_length])
+
+    def create_and_check_roberta_for_multiple_choice(
+        self, config, input_ids, token_type_ids, input_mask, sequence_labels, token_labels, choice_labels
+    ):
+        config.num_choices = self.num_choices
+        model = TFRobertaForMultipleChoice(config=config)
+        multiple_choice_inputs_ids = tf.tile(tf.expand_dims(input_ids, 1), (1, self.num_choices, 1))
+        multiple_choice_input_mask = tf.tile(tf.expand_dims(input_mask, 1), (1, self.num_choices, 1))
+        multiple_choice_token_type_ids = tf.tile(tf.expand_dims(token_type_ids, 1), (1, self.num_choices, 1))
+        inputs = {
+            "input_ids": multiple_choice_inputs_ids,
+            "attention_mask": multiple_choice_input_mask,
+            "token_type_ids": multiple_choice_token_type_ids,
+        }
+        result = model(inputs)
+        self.parent.assertListEqual(list(result["logits"].shape), [self.batch_size, self.num_choices])
 
     def prepare_config_and_inputs_for_common(self):
         config_and_inputs = self.prepare_config_and_inputs()
@@ -206,6 +209,10 @@ class TFRobertaModelTest(TFModelTesterMixin, unittest.TestCase):
     def test_for_question_answering(self):
         config_and_inputs = self.model_tester.prepare_config_and_inputs()
         self.model_tester.create_and_check_roberta_for_question_answering(*config_and_inputs)
+
+    def test_for_multiple_choice(self):
+        config_and_inputs = self.model_tester.prepare_config_and_inputs()
+        self.model_tester.create_and_check_roberta_for_multiple_choice(*config_and_inputs)
 
     @slow
     def test_model_from_pretrained(self):
