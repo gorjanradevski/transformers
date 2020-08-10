@@ -1110,7 +1110,7 @@ class BertForMaskedLM(BertPreTrainedModel):
             inputs_embeds=inputs_embeds,
             encoder_hidden_states=encoder_hidden_states,
             encoder_attention_mask=encoder_attention_mask,
-            position_embeddings=position_embeddings)
+            position_embeddings=position_embeddings,
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
